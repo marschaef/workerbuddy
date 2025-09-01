@@ -8,6 +8,7 @@ class EmptyPage extends StatefulWidget {
   State<EmptyPage> createState() => _EmptyPageState();
 }
 
+// Vorlage für die Erstellung neuer Inhalte
 class _EmptyPageState extends State<EmptyPage> {
   @override
   Widget build(BuildContext context) {

@@ -11,12 +11,12 @@ class MainNavigationBar extends StatelessWidget implements PreferredSizeWidget {
   final Function(String) onTitleChanged;
 
   const MainNavigationBar({
+    super.key,
     required this.currentIndex,
     required this.onIndexChanged,
     required this.currentTitle,
     required this.onTitleChanged,
   });
-  // const MainNavigationBar({super.key})
 
   @override
   Widget build(BuildContext context) {

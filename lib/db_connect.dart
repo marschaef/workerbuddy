@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart';
 
+// Von AI generierte Datei zur Herstellung von Verbindungen zu einer Datenbank
+
 class DbConnect extends StatefulWidget {
   const DbConnect({super.key});
 
@@ -33,11 +35,21 @@ class _DbConnectState extends State<DbConnect> {
         status = "Verbindung erfolgreich!";
       });
 
-      /* Beispiel: Daten abfragen
+      /* 
+      Beispiel Abfrage von Daten
+
       var results = await conn.query('SELECT name FROM users LIMIT 5');
       for (var row in results) {
         print('Name: ${row[0]}');
       }
+
+      Beispiel Eintrag von Daten
+      
+      var result = await conn.query(
+      'INSERT INTO user (user_email_adresse, user_passwort) VALUES (?, ?)',
+      [user_email_adresse, user_passwort],
+      );
+      print('Inserted row id=${result.insertId}');
       */
 
       await conn.close();

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-// import 'package:worker_buddy/app_style.dart';
 import 'package:worker_buddy/main_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const WorkerBuddyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class WorkerBuddyApp extends StatelessWidget {
+  const WorkerBuddyApp({super.key});
 
   // This widget is the root of your application.
   @override

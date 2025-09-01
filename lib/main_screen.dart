@@ -12,21 +12,31 @@ import 'package:worker_buddy/sites/kunden/kunden_main.dart';
 import 'package:worker_buddy/sites/kontakte/kontakte_main.dart';
 import 'package:worker_buddy/sites/abrechnungen/abrechnung_main.dart';
 
+// MainScreen managed die Darstellung.
+//Hier wird die MainNavigationBar geladen und der Kontent der geladenen Seite über den Body gemanaged.
+
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
+  // Index bestimmt den Inhalt des Bodies
   int currentIndex = 0;
+  // currentTitle managed den Titel, der im Browser Tab angezeigt wird.
+  // Funktioniert aktuell noch nicht (wie gewünscht)
   String currentTitle = "WorkerBuddy";
 
+  // Index Setter
   void setCurrentIndex(int index) {
     setState(() {
       currentIndex = index;
     });
   }
 
+  // Title Setter
   void setCurrentTitle(String title) {
     setState(() {
       currentTitle = title;
@@ -38,13 +48,16 @@ class _MainScreenState extends State<MainScreen> {
     return Title(
       title: currentTitle,
       color: Colors.blue,
+      // Die Tatsächliche Hauptanzeige / Scaffold, in der NavBar und Seiten geladen werden.
       child: Scaffold(
+        // Navigation
         appBar: MainNavigationBar(
           currentIndex: currentIndex,
           onIndexChanged: setCurrentIndex,
           currentTitle: currentTitle,
           onTitleChanged: setCurrentTitle,
         ),
+        // Inhalt der geladenen Seiten
         body: IndexedStack(
           index: currentIndex,
           children: [
