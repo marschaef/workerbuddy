@@ -1,0 +1,8 @@
+{
+  "input": "lib/",
+  "output": "lib/",
+  "exclude": [
+    "lib/generated/"
+  ],
+  "extensions": [".view.dart"]
+}

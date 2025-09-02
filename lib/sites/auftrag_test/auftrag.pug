@@ -1,0 +1,31 @@
+auftrag(flutter-view)
+    container
+        row
+            container 
+                column
+                    elevated_button.auftrag-erstellen(@on_pressed='print("Click!")',:style='ElevatedButton.styleFrom(backgroundColor: Colors.lightBlue[300], foregroundColor: Colors.black, textStyle: TextStyle(fontSize: 12,),)')
+                        | Auftrag erstellen
+                    text.erstellte-auftraege(value='Erstellte Aufträge')
+                    elevated-button.erteilte-auftraege(@on_pressed='print("Click!")')
+                        text(value='erteilte Aufträge')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Eigene')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='für Kunden')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Angebote')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Express')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Standard')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Beobachtete Aufträge')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Marktplatz')
+                    text(value='Aktive Aufträge')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='eigene Aufträge')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Kunden Aufträge')
+                    text-button(@on_pressed='print("Click!")')
+                        text(value='Work')
