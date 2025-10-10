@@ -22,11 +22,16 @@ Container Auftrag() {
                 },
                 // Workaround über .pug Datei
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlue[300],
+                  backgroundColor:
+                      Colors.lightBlue[300],
                   foregroundColor: Colors.black,
-                  textStyle: TextStyle(fontSize: 12),
+                  textStyle: TextStyle(
+                    fontSize: 12,
+                  ),
                 ),
-                child: const Text('Auftrag erstellen'),
+                child: const Text(
+                  'Auftrag erstellen',
+                ),
               ),
               //-- ERSTELLTE-AUFTRAEGE ----------------------------------------------------------
               Text(
@@ -39,14 +44,14 @@ Container Auftrag() {
                 onPressed: () {
                   print("Click!");
                 },
-                fontSize:
-                    13, // müsste in textStyle: TextStyle(fontSize: 13) übersetzt werden
+                // fontSize:
+                // 13, // müsste in textStyle: TextStyle(fontSize: 13) übersetzt werden
                 child: Text(
                   // project://lib\sites\auftrag_test\auftrag.pug#10,25
                   'erteilte Aufträge',
                 ),
-                backgroundColor: Colors
-                    .blue, // müsste in style: ElevatedButton.styleFrom(backgroundColor: Colors.blue) übersetzt werden
+                // backgroundColor: Colors
+                // .blue, // müsste in style: ElevatedButton.styleFrom(backgroundColor: Colors.blue) übersetzt werden
               ),
               TextButton(
                 // project://lib\sites\auftrag_test\auftrag.pug#11,21
@@ -163,7 +168,9 @@ Container Auftrag() {
 __flatten(List list) {
   return List<Widget>.from(
     list.expand((item) {
-      return item is Iterable ? item : [item as Widget];
+      return item is Iterable
+          ? item
+          : [item as Widget];
     }),
   );
 }

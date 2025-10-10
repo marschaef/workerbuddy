@@ -15,7 +15,9 @@ class WorkerBuddyApp extends StatelessWidget {
     return MaterialApp(
       title: 'WorkerBuddy',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue.shade300),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.lightBlue.shade300,
+        ),
       ),
       home: Auftrag(),
     );

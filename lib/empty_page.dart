@@ -5,7 +5,8 @@ class EmptyPage extends StatefulWidget {
   const EmptyPage({super.key});
 
   @override
-  State<EmptyPage> createState() => _EmptyPageState();
+  State<EmptyPage> createState() =>
+      _EmptyPageState();
 }
 
 // Vorlage für die Erstellung neuer Inhalte
