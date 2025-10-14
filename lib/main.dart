@@ -19,7 +19,7 @@ class WorkerBuddyApp extends StatelessWidget {
           seedColor: Colors.lightBlue.shade300,
         ),
       ),
-      home: Auftrag(),
+      home: MainScreen(),
     );
   }
 }

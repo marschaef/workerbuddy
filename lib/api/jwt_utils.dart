@@ -1,4 +1,5 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'dart:convert';
 
 const _TEST_RSA_PUBLIC = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArHgWkfjycp41WHDF/EELpyCzVSOIsmTTtdNtkvx1nsmRKzJc2h+NICN5pEu095ql34Z3Zgb4teMJULBMrSxwJW0xWbvaw6jy8GYNldQ0djSrxCwtZuUYWrQ5sz5yfDy5NjuJnaQmn3ng+ZUP+7Y+/kr8Kfb7Wwb6MGQPjFZKkMQIQppgqX/OOrxofqJ+QPIC2e1tEZnXQyPEKtcec7yXyx5TroPMrkKTnCKwfJ6VupZ/GEEOOzBQ46gNdO6avMihreMJrvr63DBkzfgxyhL5wMT2CZuJ+H7zvnHBTbnb+9mdwI2l1lGdj8T/AoTH7xPedJMDezibW40yGvd86OJlkQIDAQAB
@@ -30,7 +31,7 @@ String? verifyToken(String token) {
 int? getUserFromToken(String token) {
   try {
     final jwt = JWT.decode(token);
-    return jwt.payload["userID"];
+    return json.decode(jwt.payload.toString())["userID"];
   } on JWTExpiredException {
     print('Expired authentication token');
   } on JWTException catch (e) {
