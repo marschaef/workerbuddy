@@ -91,6 +91,13 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Image.asset(
+                    'assets/images/wb_logo_komplett.jpg',
+                    height: 100,
+                  ),
+                ),
                 // Willkommens Text
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),

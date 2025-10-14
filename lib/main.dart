@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:worker_buddy/main_screen.dart';
-import 'package:worker_buddy/sites/auftrag_test/auftrag.dart';
 
 void main() {
   runApp(const WorkerBuddyApp());
