@@ -32,7 +32,7 @@ class _LandingPageState extends State<LandingPage> {
               Padding(
                 padding: EdgeInsets.fromLTRB(0, 50, 0, 20),
                 child: Image.asset(
-                  '/images/wb_logo_komplett.jpg',
+                  'assets/images/wb_logo_komplett.jpg',
                   height: 100,
                   fit: BoxFit.contain,
                 ),

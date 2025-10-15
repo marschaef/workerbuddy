@@ -88,118 +88,124 @@ class _LoginPageState extends State<LoginPage> {
         child: Form(
           key: _formKey,
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0),
-                  child: Image.asset(
-                    'assets/images/wb_logo_komplett.jpg',
-                    height: 100,
-                  ),
-                ),
-                // Willkommens Text
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    'Willkommen bei WorkerBuddy!',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20.0),
+                    child: Image.asset(
+                      'assets/images/wb_logo_komplett.jpg',
+                      height: 100,
                     ),
                   ),
-                ),
-                // TextFormField für E-Mail Adresse
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 5),
-                  child: SizedBox(
-                    width: 250,
-                    child: TextFormField(
-                      controller: _eMailAdressController,
-                      obscureText: false,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'E-Mail Adresse',
-                      ),
-                      // Validator überprüft ob das TextFormField leer ist.
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Bitte E-Mail Adresse eingeben';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-                // TextFormField für Passwort
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 5, 0, 10),
-                  child: SizedBox(
-                    width: 250,
-                    child: TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Passwort',
-                      ),
-                      // Validator überprüft ob das TextFormField leer ist.
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Bitte Passwort eingeben';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-                // Button 'Einloggen'
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Methode gibt bool zurück. Login bei true.
-                        verifyLogin(
-                          _eMailAdressController.toString(),
-                          _passwordController.toString(),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      // Hier wird die gewünschte Farbe für den Login Button genutzt
-                      backgroundColor: meineFarbe,
-                    ),
-                    child: Text('Einloggen', style: AppStyle.baseTextStyle),
-                  ),
-                ),
-                // Registrierungs Text
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 5),
-                  child: Text(
-                    'Noch nicht dabei?',
-                    style: AppStyle.baseTextStyle,
-                  ),
-                ),
-                // Butten 'Registrieren'
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _changeIndex(10);
-                      _changeTitle('Registrierung | WorkerBuddy');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlue[300],
-                    ),
+                  // Willkommens Text
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
                     child: Text(
-                      'Jetzt Registrieren!',
+                      'Willkommen bei WorkerBuddy!',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  // TextFormField für E-Mail Adresse
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                    child: SizedBox(
+                      width: 250,
+                      child: TextFormField(
+                        controller: _eMailAdressController,
+                        keyboardType: TextInputType.emailAddress,
+                        obscureText: false,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'E-Mail Adresse',
+                        ),
+                        // Validator überprüft, ob das TextFormField leer ist und eine gültige E-Mail enthält.
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Bitte E-Mail Adresse eingeben';
+                          }
+                          if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                            return 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
+                  // TextFormField für Passwort
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0, 5, 0, 10),
+                    child: SizedBox(
+                      width: 250,
+                      child: TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Passwort',
+                        ),
+                        // Validator überprüft ob das TextFormField leer ist.
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Bitte Passwort eingeben';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
+                  // Button 'Einloggen'
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          // Methode gibt bool zurück. Login bei true.
+                          verifyLogin(
+                            _eMailAdressController.toString(),
+                            _passwordController.toString(),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        // Hier wird die gewünschte Farbe für den Login Button genutzt
+                        backgroundColor: meineFarbe,
+                      ),
+                      child: Text('Einloggen', style: AppStyle.baseTextStyle),
+                    ),
+                  ),
+                  // Registrierungs Text
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                    child: Text(
+                      'Noch nicht dabei?',
                       style: AppStyle.baseTextStyle,
                     ),
                   ),
-                ),
-              ],
+                  // Butten 'Registrieren'
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _changeIndex(10);
+                        _changeTitle('Registrierung | WorkerBuddy');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.lightBlue[300],
+                      ),
+                      child: Text(
+                        'Jetzt Registrieren!',
+                        style: AppStyle.baseTextStyle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
