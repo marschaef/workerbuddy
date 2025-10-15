@@ -43,10 +43,10 @@ class Api {
       if (user != null) {
         final userID = user["id"];
         final userHash = await _database.getUserHash(userID);
-  
+
         if (userHash != null) {
           if (await verifyPassword(userHash, body["password"])) {
-            final accessToken = generateAccesToken(userID);
+            final accessToken = generateAccessToken(userID);
             final refreshToken = generateRefreshToken(userID);
             return _successResponse({
               'tokens': {'access': accessToken, 'refresh': refreshToken},
@@ -71,7 +71,7 @@ class Api {
       final userID = await _database.insertUser(body["user"]);
 
       if (userID != null) {
-        final accessToken = generateAccesToken(userID);
+        final accessToken = generateAccessToken(userID);
         final refreshToken = generateRefreshToken(userID);
         return _successResponse({
           'tokens': {'access': accessToken, 'refresh': refreshToken},
@@ -91,7 +91,7 @@ class Api {
       final userID = body["user"];
 
       if (userID != null) {
-        final accessToken = generateAccesToken(userID);
+        final accessToken = generateAccessToken(userID);
         final refreshToken = generateRefreshToken(userID);
         return _successResponse({'access': accessToken, 'refresh': refreshToken});
       }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:worker_buddy/main_screen.dart';
-import 'package:worker_buddy/sites/auftrag_test/auftrag.dart';
 
 void main() {
   runApp(const WorkerBuddyApp());
@@ -19,7 +18,7 @@ class WorkerBuddyApp extends StatelessWidget {
           seedColor: Colors.lightBlue.shade300,
         ),
       ),
-      home: Auftrag(),
+      home: MainScreen(),
     );
   }
 }

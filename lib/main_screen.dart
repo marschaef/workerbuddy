@@ -12,8 +12,9 @@ import 'package:worker_buddy/sites/kunden/safe_kunden_main.dart';
 import 'package:worker_buddy/sites/kontakte/safe_kontakte_main.dart';
 import 'package:worker_buddy/sites/abrechnungen/safe_abrechnung_main.dart';
 
-// MainScreen managed die Darstellung.
-//Hier wird die MainNavigationBar geladen und der Kontent der geladenen Seite über den Body gemanaged.
+import 'package:worker_buddy/navigation_items.dart';
+
+// MainScreen managed die Darstellung und den Body-Inhalt.
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -23,20 +24,19 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // Index bestimmt den Inhalt des Bodies
+  // Bestimmt den aktuellen Body-Inhalt.
   int currentIndex = 0;
-  // currentTitle managed den Titel, der im Browser Tab angezeigt wird.
-  // Funktioniert aktuell noch nicht (wie gewünscht)
+  // Titel für den Browser-Tab.
   String currentTitle = "WorkerBuddy";
 
-  // Index Setter
+  // Setter für den Index.
   void setCurrentIndex(int index) {
     setState(() {
       currentIndex = index;
     });
   }
 
-  // Title Setter
+  // Setter für den Titel.
   void setCurrentTitle(String title) {
     setState(() {
       currentTitle = title;
@@ -48,16 +48,46 @@ class _MainScreenState extends State<MainScreen> {
     return Title(
       title: currentTitle,
       color: Colors.blue,
-      // Die Tatsächliche Hauptanzeige / Scaffold, in der NavBar und Seiten geladen werden.
+      // Haupt-Scaffold mit NavBar und Seiten-Inhalt.
       child: Scaffold(
-        // Navigation
+        // Hauptnavigation.
         appBar: MainNavigationBar(
           currentIndex: currentIndex,
           onIndexChanged: setCurrentIndex,
           currentTitle: currentTitle,
           onTitleChanged: setCurrentTitle,
         ),
-        // Inhalt der geladenen Seiten
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.lightBlue[300],
+                ),
+                child: const Text(
+                  'Navigation',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              ...navigationItems.map((item) {
+                return ListTile(
+                  leading: Icon(item.icon),
+                  title: Text(item.title),
+                  onTap: () {
+                    setCurrentIndex(item.index);
+                    setCurrentTitle('${item.title} | WorkerBuddy');
+                    Navigator.pop(context);
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+        // Body-Inhalt.
         body: IndexedStack(
           index: currentIndex,
           children: [

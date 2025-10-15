@@ -32,7 +32,7 @@ String? verifyToken(String token) {
 int? getUserFromToken(String token) {
   try {
     final jwt = JWT.decode(token);
-    return json.decode(jwt.payload.toString())["userId"];
+    return json.decode(jwt.payload.toString())["userID"];
   } on JWTExpiredException {
     print('Expired authentication token');
   } on JWTException catch (e) {
