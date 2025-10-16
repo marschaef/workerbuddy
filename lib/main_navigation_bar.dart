@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:worker_buddy/navigation_items.dart';
 
-class MainNavigationBar extends StatelessWidget implements PreferredSizeWidget {
+class MainNavigationBar extends StatelessWidget
+    implements PreferredSizeWidget {
   @override
-  final Size preferredSize = const Size.fromHeight(90);
+  final Size preferredSize =
+      const Size.fromHeight(90);
 
   final int currentIndex;
   final String currentTitle;
@@ -37,24 +38,38 @@ class MainNavigationBar extends StatelessWidget implements PreferredSizeWidget {
           onIndexChanged(0);
           onTitleChanged('Home | WorkerBuddy');
         },
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(5, 20, 10, 10),
-          child: Image.asset(
-            'assets/images/wb_logo_kurz.jpg',
-            height: 50,
-            fit: BoxFit.contain,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              0,
+              20,
+              0,
+              10,
+            ),
+            child: Image.asset(
+              'assets/images/WorkerBuddy_kurz_neu.png',
+              height: 100,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(0, 10, 30, 10),
+          padding: const EdgeInsets.fromLTRB(
+            0,
+            10,
+            30,
+            10,
+          ),
           child: IconButton(
             icon: const Icon(Icons.login),
             tooltip: 'Login',
             onPressed: () {
               onIndexChanged(9);
-              onTitleChanged('Login | WorkerBuddy');
+              onTitleChanged(
+                'Login | WorkerBuddy',
+              );
             },
           ),
         ),

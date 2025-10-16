@@ -1,35 +1,28 @@
 import 'package:flutter/material.dart';
 
-// ##################################################################
-// #                  ZENTRALE DESIGN-STEUERUNG                     #
-// ##################################################################
-// In dieser Datei wird das komplette Look-and-Feel der App definiert.
-// Änderungen hier wirken sich auf die gesamte App aus.
-
+/// Definiert das visuelle Erscheinungsbild der App.
+///
+/// Enthält Farbpaletten, Schriftstile und Komponenten-Designs
+/// für den Light- und Dark-Mode.
+/// Änderungen hier wirken sich global auf die App aus.
 class AppTheme {
-  // privater konstruktor, damit man die klasse nicht aus versehen erstellt
   AppTheme._();
 
-  // --- 1. GRUNDFARBEN ---
-
+  // Definiert die primäre Akzentfarbe der Anwendung.
   static const _primaryColor = Color(0xFF45BDF9);
 
-  // --- 2. ABSTÄNDE & FORMEN ---
-  // Globale Werte für Layout und Design.
-
+  // Standardisierte Abstände für ein konsistentes Layout.
   static const double paddingSmall = 8.0;
   static const double paddingMedium = 16.0;
   static const double paddingLarge = 24.0;
 
-  static const double borderRadius =
-      12.0; // Globaler Eck-Radius.
+  // Standard-Radius für abgerundete Ecken.
+  static const double borderRadius = 12.0;
 
-  // --- 3. EFFEKTE (Schatten & Verläufe) ---
-  // Dynamische Effekte für Light/Dark-Mode.
+  /// Erzeugt einen dezenten Schatten für Karten, angepasst an den Theme-Modus.
   static List<BoxShadow> getCardShadow(
     Brightness brightness,
   ) {
-    // Passender Schatten für den aktuellen Modus.
     final shadowColor =
         brightness == Brightness.light
         ? Colors.black.withAlpha(25)
@@ -45,7 +38,7 @@ class AppTheme {
     ];
   }
 
-  // Hintergrundverlauf, der die Theme-Farben nutzt.
+  /// Erzeugt einen sanften Hintergrundverlauf.
   static BoxDecoration getBackgroundGradient(
     ColorScheme colorScheme,
   ) {
@@ -61,12 +54,11 @@ class AppTheme {
     );
   }
 
-  // --- 4. SPEZIAL-STILE ---
+  // Text-Stil für die Navigationsleiste.
   static const TextStyle navigationText =
       TextStyle(fontWeight: FontWeight.bold);
 
-  // --- 5. BASIS-TEXT-THEME ---
-  // Globale Textstile, die für beide Themes gelten.
+  // Definiert die grundlegenden Text-Stile der App.
   static const TextTheme _textTheme = TextTheme(
     headlineLarge: TextStyle(
       fontSize: 24.0,
@@ -81,22 +73,19 @@ class AppTheme {
       fontWeight: FontWeight.w400,
     ),
     labelLarge: TextStyle(
-      fontSize: 18.0,
+      fontSize: 14.0,
       fontWeight: FontWeight.w700,
     ),
   );
 
-  // ##################################################################
-  // #                      DAS HELLE THEME (Light)                   #
-  // ##################################################################
+  /// Konfiguration für das helle Theme.
   static ThemeData get lightTheme {
-    // Farbschema aus der Markenfarbe generieren.
     final colorScheme = ColorScheme.fromSeed(
       seedColor: _primaryColor,
       brightness: Brightness.light,
-      primary:
-          _primaryColor, // Stellt sicher, dass die Primärfarbe exakt _primaryColor ist.
-      // Manuelle Anpassungen für den Light-Mode.
+      primary: _primaryColor,
+      onPrimary: Colors.white,
+
       surface: const Color(0xFFF5F5F5),
       onSurface: const Color(0xFF333333),
     );
@@ -104,24 +93,19 @@ class AppTheme {
     return _getThemeData(colorScheme);
   }
 
-  // ##################################################################
-  // #                     DAS DUNKLE THEME (Dark)                    #
-  // ##################################################################
+  /// Konfiguration für das dunkle Theme.
   static ThemeData get darkTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: _primaryColor,
       brightness: Brightness.dark,
-      primary:
-          _primaryColor, // Stellt sicher, dass die Primärfarbe exakt _primaryColor ist.
-      // Hier sind die generierten Farben meist schon passend.
+      primary: _primaryColor,
+      onPrimary: Colors.white,
     );
     return _getThemeData(colorScheme);
   }
 
-  // ##################################################################
-  // #                  GEMEINSAME THEME-DEFINITION                   #
-  // ##################################################################
-  // Zentrale Methode, um ThemeData zu erstellen und Code-Duplizierung zu vermeiden.
+  /// Baut das `ThemeData`-Objekt basierend auf einem `ColorScheme`.
+  /// Hier werden die globalen Stile für Widgets wie Buttons, Karten etc. definiert.
   static ThemeData _getThemeData(
     ColorScheme colorScheme,
   ) {
@@ -133,7 +117,7 @@ class AppTheme {
       useMaterial3: true,
       fontFamily: 'Roboto',
       colorScheme: colorScheme,
-      // Textfarben an das Farbschema anpassen.
+
       textTheme: _textTheme.apply(
         bodyColor: colorScheme.onSurface,
         displayColor: colorScheme.onSurface,
@@ -147,6 +131,9 @@ class AppTheme {
                   colorScheme.primary,
               foregroundColor:
                   colorScheme.onPrimary,
+              elevation: 4.0,
+              shadowColor: Colors.black
+                  .withOpacity(0.4),
               shape: RoundedRectangleBorder(
                 borderRadius:
                     BorderRadius.circular(
@@ -155,17 +142,17 @@ class AppTheme {
               ),
               minimumSize: const Size(0, 52),
               padding: const EdgeInsets.symmetric(
-                vertical: paddingSmall,
+                vertical: paddingMedium,
+                horizontal: paddingLarge,
               ),
             ),
           ),
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
       ),
       cardTheme: CardThemeData(
-        elevation:
-            0, // Ich nutze meinen eigenen Schatten.
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
             borderRadius,
@@ -174,10 +161,10 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(
           vertical: paddingSmall,
         ),
-        // Im Dark Mode bekommen Karten eine leicht andere Farbe für besseren Kontrast.
+
         color: isLight
             ? colorScheme.surface
-            : colorScheme.surfaceVariant,
+            : colorScheme.surfaceContainerHighest,
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
@@ -186,7 +173,7 @@ class AppTheme {
           ),
           borderSide: BorderSide(
             color: colorScheme.onSurface
-                .withAlpha(102), // 40% Deckkraft
+                .withAlpha(102),
           ),
         ),
         floatingLabelStyle: TextStyle(
@@ -197,7 +184,7 @@ class AppTheme {
         labelColor: colorScheme.onPrimary,
         unselectedLabelColor: colorScheme
             .onPrimary
-            .withAlpha(178), // 70% Deckkraft
+            .withAlpha(178),
         indicatorSize: TabBarIndicatorSize.tab,
         indicator: BoxDecoration(
           color: colorScheme.primaryContainer,

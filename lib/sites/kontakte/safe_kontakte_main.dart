@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:worker_buddy/app_style.dart';
+import 'package:worker_buddy/utils/app_styles.dart';
 
 class KontakteMain extends StatefulWidget {
   final Function(int) onIndexChanged;
@@ -11,20 +11,31 @@ class KontakteMain extends StatefulWidget {
   });
 
   @override
-  State<KontakteMain> createState() => _KontakteMainState();
+  State<KontakteMain> createState() =>
+      _KontakteMainState();
 }
 
-class _KontakteMainState extends State<KontakteMain> {
+class _KontakteMainState
+    extends State<KontakteMain> {
   @override
   Widget build(BuildContext context) {
-    return Title(
-      title: 'Home | WorkerBuddy',
-      color: Colors.black,
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: AppStyle.backgroundGradient,
-        child: Center(child: Text('Kontakte')),
+    return Scaffold(
+      body: Title(
+        title: 'Home | WorkerBuddy',
+        color: Colors.black,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration:
+              AppTheme.getBackgroundGradient(
+                Theme.of(context).colorScheme,
+              ),
+          child: SingleChildScrollView(
+            child: Center(
+              child: Text('Kontakte'),
+            ),
+          ),
+        ),
       ),
     );
   }

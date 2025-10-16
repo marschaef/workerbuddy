@@ -20,7 +20,8 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  _MainScreenState createState() =>
+      _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
@@ -79,7 +80,9 @@ class _MainScreenState extends State<MainScreen> {
                   title: Text(item.title),
                   onTap: () {
                     setCurrentIndex(item.index);
-                    setCurrentTitle('${item.title} | WorkerBuddy');
+                    setCurrentTitle(
+                      '${item.title} | WorkerBuddy',
+                    );
                     Navigator.pop(context);
                   },
                 );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:worker_buddy/main_screen.dart';
+import 'package:worker_buddy/utils/app_styles.dart';
 
 void main() {
   runApp(const WorkerBuddyApp());
@@ -13,11 +14,9 @@ class WorkerBuddyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'WorkerBuddy',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.lightBlue.shade300,
-        ),
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       home: MainScreen(),
     );
   }

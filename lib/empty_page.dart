@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:worker_buddy/app_style.dart';
+import 'package:worker_buddy/utils/app_styles.dart';
 
 class EmptyPage extends StatefulWidget {
   const EmptyPage({super.key});
@@ -13,14 +13,21 @@ class EmptyPage extends StatefulWidget {
 class _EmptyPageState extends State<EmptyPage> {
   @override
   Widget build(BuildContext context) {
-    return Title(
-      title: 'Empty | WorkerBuddy',
-      color: Colors.black,
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: AppStyle.backgroundGradient,
-        child: Center(),
+    return Scaffold(
+      body: Title(
+        title: 'Empty | WorkerBuddy',
+        color: Colors.black,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration:
+              AppTheme.getBackgroundGradient(
+                Theme.of(context).colorScheme,
+              ),
+          child: SingleChildScrollView(
+            child: Center(),
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:worker_buddy/app_style.dart';
+import 'package:worker_buddy/utils/app_styles.dart';
 
 class AbrechnungMain extends StatefulWidget {
   final Function(int) onIndexChanged;
@@ -11,20 +11,31 @@ class AbrechnungMain extends StatefulWidget {
   });
 
   @override
-  State<AbrechnungMain> createState() => _AbrechnungMainState();
+  State<AbrechnungMain> createState() =>
+      _AbrechnungMainState();
 }
 
-class _AbrechnungMainState extends State<AbrechnungMain> {
+class _AbrechnungMainState
+    extends State<AbrechnungMain> {
   @override
   Widget build(BuildContext context) {
-    return Title(
-      title: 'Abrechnung | WorkerBuddy',
-      color: Colors.black,
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: AppStyle.backgroundGradient,
-        child: Center(child: Text('Abrechnung')),
+    return Scaffold(
+      body: Title(
+        title: 'Abrechnung | WorkerBuddy',
+        color: Colors.black,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration:
+              AppTheme.getBackgroundGradient(
+                Theme.of(context).colorScheme,
+              ),
+          child: SingleChildScrollView(
+            child: Center(
+              child: Text('Abrechnung'),
+            ),
+          ),
+        ),
       ),
     );
   }
