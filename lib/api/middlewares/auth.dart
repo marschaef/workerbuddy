@@ -10,7 +10,7 @@ Middleware jwtAuthHandler() {
       if (request.url.path == 'login') return innerHandler(request);
 
       final authHeader = request.headers['authorization'];
-      
+
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
         return Response.unauthorized(
           '{"error": "Authentication required"}',
@@ -19,7 +19,7 @@ Middleware jwtAuthHandler() {
       }
 
       final token = authHeader.substring(7); // Remove 'Bearer ' prefix
-      
+
       // Validate jwt token
       String? error = verifyToken(token);
       if (error != null) {
@@ -31,7 +31,7 @@ Middleware jwtAuthHandler() {
 
       // Add user to request
       final updatedRequest = request.change(
-        context: {'user': getUserFromToken(token)},
+        context: {'userId': getUserFromToken(token)},
       );
 
       return innerHandler(updatedRequest);

@@ -8,6 +8,7 @@ import 'middlewares/auth.dart';
 import 'middlewares/cors.dart';
 import 'middlewares/error.dart';
 
+// API server with Shelf (start server: dart run server.dart)
 void main() async {
   final api = Api();
 
@@ -26,18 +27,20 @@ void main() async {
     int.fromEnvironment('PORT', defaultValue: 8080),
   );
 
-  print('API server running on http://${server.address.host}:${server.port}');
+  print(
+    'API server running on http://${server.address.host}:${server.port}',
+  );
   print('Available endpoints:');
   print('  POST  /api/login');
+  print('  POST  /api/logout');
+  print('  POST  /api/register');
+  print('  POST  /api/refresh');
   print('  POST  /api/acceptJob');
   print('  POST  /api/cancelJob');
-  print('  POST  /api/getJob');
-  print('  POST  /api/getJobs');
+  print('  POST  /api/jobs');
   print('  POST  /api/newJob');
   print('  POST  /api/updateJob');
   print('  POST  /api/finishJob');
-  print('  POST  /api/getUser');
-  print('  POST  /api/getUsers');
-  print('  POST  /api/newUser');
+  print('  POST  /api/users');
   print('  POST  /api/updateUser');
 }

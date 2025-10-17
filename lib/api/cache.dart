@@ -1,8 +1,6 @@
-import 'dart:convert';
-
 import 'package:sqflite/sqflite.dart';
 
-const _TABLE_NAME = 'cache';
+const TABLE_NAME = 'cache';
 
 // App cache with sqlite
 class Cache {
@@ -12,10 +10,10 @@ class Cache {
   Cache() {
     // Connect to database an create cache table
     Future<void> connectDB() async {
-      _database = await openDatabase('.$_TABLE_NAME.db');
+      _database = await openDatabase('.$TABLE_NAME.db');
 
       await _database.execute('''
-CREATE TABLE IF NOT EXISTS $_TABLE_NAME ( 
+CREATE TABLE IF NOT EXISTS $TABLE_NAME ( 
   id INTEGER PRIMARY KEY, 
   timestamp INTEGER NOT NULL,
   key TEXT NOT NULL,
@@ -36,17 +34,14 @@ CREATE TABLE IF NOT EXISTS $_TABLE_NAME (
   }
 
   // Get cache value from database
-  Future<dynamic> getCache(String key) async {
+  Future<String?> get(String key) async {
     try {
       if (_keys.contains(key)) {
-        final command = 'SELECT value FROM $_TABLE_NAME WHERE key = "$key"';
+        final command = 'SELECT value FROM $TABLE_NAME WHERE key = "$key"';
         final result = await _database.query(command);
 
         if (result.isNotEmpty) {
-          if (_shouldDelete(key)) {
-            await _database.execute('DELETE FROM $_TABLE_NAME WHERE key = "$key"');
-          }
-          return json.decode(result.first.toString());
+          return result.first.toString();
         }
       }
     } catch (e) {
@@ -56,17 +51,17 @@ CREATE TABLE IF NOT EXISTS $_TABLE_NAME (
   }
 
   // Update or insert cache vaule in database
-  Future<bool> updateCache(String key, String? value) async {
+  Future<bool> update(String key, String? value) async {
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       if (_keys.contains(key)) {
         value = value == null ? 'NULL' : '"value"';
         final command =
-            'UPDATE $_TABLE_NAME SET timestamp = $timestamp, value = $value WHERE key = "$key"';
+            'UPDATE $TABLE_NAME SET timestamp = $timestamp, value = $value WHERE key = "$key"';
 
         await _database.execute(command);
       } else {
-        await _database.insert(_TABLE_NAME, {
+        await _database.insert(TABLE_NAME, {
           'timestamp': timestamp,
           'key': key,
           'value': value,
@@ -82,8 +77,28 @@ CREATE TABLE IF NOT EXISTS $_TABLE_NAME (
     }
   }
 
-  // Determine if cached data should be deleted after first read
-  bool _shouldDelete(String key) {
-    return key == 'acceptOrder';
+  // Clear cache
+  Future<bool> delete(String key) async {
+    try {
+      if (_keys.contains(key)) {
+        await _database.execute('DELETE FROM $TABLE_NAME WHERE key="$key"');
+      }
+      
+      return true;
+    } catch (e) {
+      print('Error sqlite delete $key cache: ${e.toString()}');
+      return false;
+    }
+  }
+
+  // Clear cache
+  Future<bool> clear() async {
+    try {
+      await _database.execute('DELETE FROM $TABLE_NAME WHERE 1=1');
+      return true;
+    } catch (e) {
+      print('Error sqlite clear cache: ${e.toString()}');
+      return false;
+    }
   }
 }

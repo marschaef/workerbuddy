@@ -1,16 +1,5 @@
 import 'package:dio/dio.dart';
 
-// App error handler
-class Error implements Exception {
-  final int code;
-  final String message;
-
-  Error(this.code, this.message);
-
-  @override
-  String toString() => 'ERROR $code: $message';
-}
-
 class ResponseCode {
   static const int success = 200; // success with data
   static const int noContent = 201; // success with no data (no content)
@@ -31,17 +20,42 @@ class ResponseCode {
   static const int locationDenied = -7;
   static const int defaultError = -8;
   static const int connectionError = -9;
+  static const int apiError = -10;
 }
 
 // App error handler
-class ErrorHandler implements Exception {
+class Error implements Exception {
+  final int code;
+  final String message;
+
+  Error(this.code, this.message);
+
+  @override
+  String toString() => 'ERROR $code: $message';
+}
+
+class ApiException extends Error {
+  final String method;
+
+  ApiException(this.method, super.code, super.message);
+
+  @override
+  toString() {
+    return 'ERROR $code $method: $message';
+  }
+}
+
+// App error handler
+class ErrorHandler {
   late Error error;
 
   ErrorHandler.handle(dynamic e) {
     if (e is DioException) {
       error = _handleDioError(e);
+    } else if (e is ApiException) {
+      error = Error(ResponseCode.apiError, e.toString());
     } else {
-      error = Error(ResponseCode.defaultError, e.toString());
+      error = ApiException("", ResponseCode.defaultError, e.toString());
     }
     print(error.toString());
   }

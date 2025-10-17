@@ -17,7 +17,9 @@ String? verifyToken(String token) {
   try {
     JWT.verify(
       token,
-      SecretKey(String.fromEnvironment('RSA_PUBLIC', defaultValue: _TEST_RSA_PUBLIC)),
+      SecretKey(
+        String.fromEnvironment('RSA_PUBLIC', defaultValue: _TEST_RSA_PUBLIC),
+      ),
     );
     return null;
   } on JWTExpiredException {
@@ -54,7 +56,9 @@ String generateAccessToken(int userId) {
     issuer: 'workerbuddy',
   );
   return jwt.sign(
-    SecretKey(String.fromEnvironment('RSA_PRIVATE', defaultValue: _TEST_RSA_PRIVATE)),
+    SecretKey(
+      String.fromEnvironment('RSA_PRIVATE', defaultValue: _TEST_RSA_PRIVATE),
+    ),
     algorithm: JWTAlgorithm.RS256,
     noIssueAt: false,
     expiresIn: Duration(minutes: 60),
@@ -74,7 +78,9 @@ String generateRefreshToken(int userId) {
     issuer: 'workerbuddy',
   );
   return jwt.sign(
-    SecretKey(String.fromEnvironment('RSA_PRIVATE', defaultValue: _TEST_RSA_PRIVATE)),
+    SecretKey(
+      String.fromEnvironment('RSA_PRIVATE', defaultValue: _TEST_RSA_PRIVATE),
+    ),
     algorithm: JWTAlgorithm.RS256,
     noIssueAt: false,
     expiresIn: Duration(days: 7),

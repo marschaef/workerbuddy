@@ -7,6 +7,23 @@ import 'database.dart';
 import 'password_utils.dart';
 import 'jwt_utils.dart';
 
+class ApiMethod {
+  static const String login = 'login';
+  static const String logout = 'logout';
+  static const String register = 'register';
+  static const String refresh = 'refresh';
+  
+  static const String jobs = 'jobs';
+  static const String acceptJob = 'acceptJob';
+  static const String cancelJob = 'cancelJob';
+  static const String newJob = 'newJob';
+  static const String removeJob = 'removeJob';
+  static const String updateJob = 'updateJob';
+
+  static const String users = 'users';
+  static const String updateUser = 'updateUser';
+}
+
 class Api {
   final AppDatabase _database = AppDatabase();
   //final PasswordManager _passwordManager = PasswordManager.instance;
@@ -17,20 +34,19 @@ class Api {
     // POST api endpoints
     // Auth methods
     router.post('/api/login', _login);
+    router.post('/api/logout', _logout);
     router.post('/api/register', _registerUser);
     router.post('/api/refresh', _refreshToken);
     // Job methods
-    router.post('/api/acceptjob', _acceptJob);
-    router.post('/api/canceljob', _cancelJob);
-    router.post('/api/getjob', _getJob);
-    router.post('/api/getjobs', _getJobs);
-    router.post('/api/newjob', _newJob);
-    router.post('/api/removejob', _removeJob);
-    router.post('/api/updatejob', _updateJob);
+    router.post('/api/acceptJob', _acceptJob);
+    router.post('/api/cancelJob', _cancelJob);
+    router.post('/api/jobs', _getJobs);
+    router.post('/api/newJob', _newJob);
+    router.post('/api/removeJob', _removeJob);
+    router.post('/api/updateJob', _updateJob);
     // User methods
-    router.post('/api/getuser', _getUser);
-    router.post('/api/getusers', _getUsers);
-    router.post('/api/updateuser', _updateUser);
+    router.post('/api/users', _getUsers);
+    router.post('/api/updateUser', _updateUser);
 
     return router;
   }
@@ -57,6 +73,19 @@ class Api {
       }
     } catch (e) {
       print("Error api login: ${e.toString()}");
+    }
+    return _badResponse(null);
+  }
+
+  // Returns access and refresh jwt token to user
+  Future<Response> _logout(Request request) async {
+    try {
+      final body = json.decode(await request.readAsString());
+      final success = await _database.updateUser(body["userId"], {"logged": false});
+
+      return _successResponse(success);
+    } catch (e) {
+      print("Error api logout user: ${e.toString()}");
     }
     return _badResponse(null);
   }
@@ -93,7 +122,9 @@ class Api {
       if (userID != null) {
         final accessToken = generateAccessToken(userID);
         final refreshToken = generateRefreshToken(userID);
-        return _successResponse({'access': accessToken, 'refresh': refreshToken});
+        return _successResponse({
+          'tokens': {'access': accessToken, 'refresh': refreshToken},
+        });
       }
     } catch (e) {
       print("Error api refresh token: ${e.toString()}");
@@ -124,19 +155,6 @@ class Api {
       return _successResponse(success);
     } catch (e) {
       print("Error api remove job: ${e.toString()}");
-    }
-    return _badResponse(null);
-  }
-
-  // Get job api function
-  Future<Response> _getJob(Request request) async {
-    try {
-      final body = json.decode(await request.readAsString());
-      final value = await _database.getJob(body["id"]);
-
-      if (value != null) return _successResponse(value);
-    } catch (e) {
-      print("Error api get job: ${e.toString()}");
     }
     return _badResponse(null);
   }
@@ -192,19 +210,6 @@ class Api {
       return _successResponse(success);
     } catch (e) {
       print("Error api remove job: ${e.toString()}");
-    }
-    return _badResponse(null);
-  }
-
-  // Get user api function
-  Future<Response> _getUser(Request request) async {
-    try {
-      final body = json.decode(await request.readAsString());
-      final value = await _database.getUser(body["id"]);
-
-      if (value != null) return _successResponse(value);
-    } catch (e) {
-      print("Error api get user: ${e.toString()}");
     }
     return _badResponse(null);
   }

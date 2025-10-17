@@ -5,7 +5,7 @@ import 'package:crypto/crypto.dart';
 
 
 
-// Password manager for user database
+// Password utils functions to generate salts and hashes
 
 // Generate hash from user password, unique user salt and static server salt
 String generateHash(String password, String userSalt) {
