@@ -4,7 +4,7 @@ class MainNavigationBar extends StatelessWidget
     implements PreferredSizeWidget {
   @override
   final Size preferredSize =
-      const Size.fromHeight(90);
+      const Size.fromHeight(60);
 
   final int currentIndex;
   final String currentTitle;
@@ -21,8 +21,6 @@ class MainNavigationBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AppBar(
       // Hamburger-Menü für die mobile Navigation
       leading: IconButton(
@@ -59,7 +57,7 @@ class MainNavigationBar extends StatelessWidget
           padding: const EdgeInsets.fromLTRB(
             0,
             10,
-            30,
+            10,
             10,
           ),
           child: IconButton(
