@@ -2,32 +2,41 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
-import '../error_handler.dart';
 import 'cache.dart';
 import 'client.dart';
-import 'methods.dart';
+import '../error_handler.dart';
 import 'token_service.dart';
+
+class ApiMethod {
+  static const String login = 'login';
+  static const String logout = 'logout';
+  static const String register = 'register';
+  static const String refresh = 'refresh';
+
+  static const String jobs = 'jobs';
+  static const String searchJobs = 'searchJob';
+  static const String acceptJob = 'acceptJob';
+  static const String cancelJob = 'cancelJob';
+  static const String newJob = 'newJob';
+  static const String removeJob = 'removeJob';
+  static const String updateJob = 'updateJob';
+
+  static const String users = 'users';
+  static const String updateUser = 'updateUser';
+}
 
 class ApiService {
   final cache = Cache();
   final _client = Client.instance;
-  final _tokenService = TokenService.instance;
+  final tokenService = TokenService.instance;
 
   ApiService();
 
   // User login
-  Future<Map?> login(
-    String email,
-    String? password,
-  ) async {
+  Future<String?> login(String email, String? password) async {
     try {
       final body = {'email': email, 'password': password};
-      final response = await _client.post(ApiMethod.login, body);
-
-      if (response != null) {
-        await cache.update("user", response);
-        return json.decode(response)["value"];
-      }
+      return await _callAndCache(ApiMethod.login, body, ApiMethod.login);
     } catch (e) {
       ErrorHandler.handle(_getError(ApiMethod.login, e));
     }
@@ -35,32 +44,26 @@ class ApiService {
   }
 
   // User logout
-  Future<Map?> logout() async {
+  Future<bool?> logout() async {
     try {
-      final response = await _client.post(ApiMethod.logout, null);
-
-      if (response != null) {
-        await cache.clear();
-        _tokenService.deleteAccessToken();
-        _tokenService.deleteRefreshToken();
-        return json.decode(response)["value"];
+      final response = await _callAndCache(ApiMethod.logout, null, null);
+      if(response != null && response){
+        tokenService.deleteAccessToken();
+        tokenService.deleteRefreshToken();
+        cache.delete(ApiMethod.login);
+        return response;
       }
     } catch (e) {
       ErrorHandler.handle(_getError(ApiMethod.login, e));
     }
-    return null;
+    return false;
   }
 
   // Register new user
-  Future<Map?> register(String username, String email, String password) async {
+  Future<String?> register(String username, String email, String password) async {
     try {
       final body = {'username': username, 'email': email, 'password': password};
-      final response = await _client.post(ApiMethod.register, body);
-
-      if (response != null) {
-        await cache.update("user", response);
-        return json.decode(response)["value"];
-      }
+      return await _callAndCache(ApiMethod.register, body, ApiMethod.login);
     } catch (e) {
       ErrorHandler.handle(_getError(ApiMethod.register, e));
     }
@@ -70,46 +73,71 @@ class ApiService {
   // Refresh access token
   Future<bool> refreshToken() async {
     try {
-      final response = await _client.post(ApiMethod.refresh, null);
-      if (response != null) return true;
+      final response = await _callAndCache(ApiMethod.refresh, null, null);
+      if(response != null) return response;
     } catch (e) {
       ErrorHandler.handle(_getError(ApiMethod.refresh, e));
     }
     return false;
   }
 
-  // Get jobs with filter
-  Future<List<Map>?> getJobs(Map? filter) async {
+  // Get jobs with ids
+  Future<List<String>?> getJobs(List<int> ids) async {
     try {
-      final body = filter == null ? null : {'filter': filter};
-      final response = await _callOrCache(ApiMethod.jobs, body, ApiMethod.jobs);
-
-      if (response != null) return _getValue(response);
+      final body = {'ids': ids};
+      //final response = await _callOrCache(ApiMethod.jobs, body, ApiMethod.jobs);
+      return await _callAndCache(ApiMethod.jobs, body, ApiMethod.jobs);
     } catch (e) {
       ErrorHandler.handle(_getError(ApiMethod.jobs, e));
     }
     return null;
   }
 
-  // Call api or use date from cache
-  dynamic _getValue(String response) async {
-    return json.decode(response)["value"];
+  // Get jobs with filter
+  Future<List<String>?> searchJobs(Map? filter) async {
+    try {
+      final body = filter == null ? null : {'filter': filter};
+      //final response = await _callOrCache(ApiMethod.searchJobs, body, ApiMethod.jobs);
+      return await _callAndCache(ApiMethod.searchJobs, body, ApiMethod.jobs);
+    } catch (e) {
+      ErrorHandler.handle(_getError(ApiMethod.jobs, e));
+    }
+    return null;
   }
 
-  // Call api or use date from cache
+  // Decode data from response
+  dynamic _getValue(dynamic data) async {
+    return json.decode(data["value"]);
+  }
+
+  // Call api and cache data of response
+  Future<dynamic> _callAndCache(String method, Map? body, String? key) async {
+    final response = await _client.post(method, body);
+
+    if (response.statusCode == 200 && response.data.contains("value")) {
+      if (key != null) await cache.update(key, response.data['value']);
+      return response.data['value'];
+    }
+
+    return null;
+  }
+
+  // Call api or get data from cache
   Future<dynamic> _callOrCache(String method, Map? data, String key) async {
     final response = await _client.post(method, data);
 
-    if (response == null) return await cache.get(key);
+    if (response.statusCode != 200 || !response.data.contains("value")) {
+      return await cache.get(key);
+    }
 
-    await cache.update(key, response);
-    return response;
+    await cache.update(key, response.data["value"]);
+    return response.data["value"];
   }
 
   // Returns dio or api error
   Exception _getError(String method, Object error) {
     return error is DioException
         ? error
-        : ApiException(method, ResponseCode.apiError, error.toString());
+        : Error(ErrorCode.apiError, method, error.toString());
   }
 }

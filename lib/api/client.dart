@@ -40,12 +40,12 @@ class Client {
   }
 
   // Call GET api methods
-  Future<dynamic> get(String path) async {
+  Future<Response<dynamic>> get(String path) async {
     return await _debouncedRequest(() => _dio.get(path, cancelToken: _cancelToken));
   }
 
   // Call POST api methods
-  Future<dynamic> post(String path, Object? data) async {
+  Future<Response<dynamic>> post(String path, Object? data) async {
     return await _debouncedRequest(
       () => _dio.post(path, data: data, cancelToken: _cancelToken),
     );

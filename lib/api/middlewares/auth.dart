@@ -6,8 +6,10 @@ import '../jwt_utils.dart';
 Middleware jwtAuthHandler() {
   return (Handler innerHandler) {
     return (Request request) async {
-      // Skip auth for login
-      if (request.url.path == 'login') return innerHandler(request);
+      // Skip auth for login register and refresh tokens
+      if (request.url.path == 'api/login' || request.url.path == 'api/register') {
+        return innerHandler(request);
+      }
 
       final authHeader = request.headers['authorization'];
 

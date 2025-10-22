@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:mysql_client/mysql_client.dart';
 
 // Workerbuddy MySQL database interface
@@ -9,23 +10,25 @@ class AppDatabase {
   AppDatabase() {
     // Connect to database with environment variables configurable with --dart-define
     Future<void> connectDB() async {
-      _database = await MySQLConnection.createConnection(
-        host: String.fromEnvironment('MYSQL_HOST', defaultValue: '127.0.0.1'),
-        port: int.fromEnvironment('MYSQL_PORT', defaultValue: 8080),
-        userName: String.fromEnvironment('MYSQL_USERNAME', defaultValue: 'user'),
-        password: String.fromEnvironment('MYSQL_PASSWORD', defaultValue: 'password'),
-        databaseName: String.fromEnvironment(
-          'MYSQL_APP_DATABASE',
-          defaultValue: 'workerbuddy',
-        ),
-      );
-      _database.connect();
+      try {
+        _database = await MySQLConnection.createConnection(
+          host: String.fromEnvironment('MYSQL_HOST', defaultValue: '10.42.0.140'),
+          port: int.fromEnvironment('MYSQL_PORT', defaultValue: 3306),
+          userName: String.fromEnvironment('MYSQL_USERNAME', defaultValue: 'user'),
+          password: String.fromEnvironment('MYSQL_PASSWORD', defaultValue: 'password'),
+          databaseName: String.fromEnvironment(
+            'MYSQL_APP_DATABASE',
+            defaultValue: 'workerbuddy',
+          ),
+        );
 
-      // Set maybe a short delay before querying
-      //await Future.delayed(const Duration(milliseconds: 10));
-
-      jobCount = (await getTableLength('jobs'))?.toInt() ?? jobCount;
-      userCount = (await getTableLength('users'))?.toInt() ?? userCount;
+        await _database.connect();
+        jobCount = (await getTableLength('jobs'))?.toInt() ?? jobCount;
+        userCount = (await getTableLength('users'))?.toInt() ?? userCount;
+      } catch (e) {
+        print("Error mysql connect: ${e.toString()}");
+        exit(0);
+      }
     }
 
     connectDB();
@@ -34,10 +37,12 @@ class AppDatabase {
   // Generate MySQL Update command
   Future<BigInt?> getTableLength(String table) async {
     try {
-      final command =
-          "SELECT TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'workerbuddy' AND TABLE_NAME = $table";
+      final command = "SELECT COUNT(id) FROM $table";
       final result = await _database.execute(command);
-      if (result.rows.isNotEmpty) return BigInt.parse(result.rows.first.toString());
+      if (result.affectedRows.toInt() > 0) {
+        final data = result.rows.first.assoc()["COUNT(id)"];
+        if (data != null) return BigInt.parse(data);
+      }
     } catch (e) {
       print("Error mysql get table length of $table: ${e.toString()}");
     }
@@ -66,7 +71,7 @@ class AppDatabase {
         final command = "DELETE FROM active WHERE id = $id";
         final result = await _database.execute(command);
 
-        if (result.affectedRows > BigInt.from(0)) {
+        if (result.affectedRows.toInt() > 0) {
           return updateJob(id, {"active": false, "canceled": true});
         }
       }
@@ -83,7 +88,7 @@ class AppDatabase {
         final command = "DELETE FROM active WHERE id = $id";
         final result = await _database.execute(command);
 
-        if (result.affectedRows > BigInt.from(0)) {
+        if (result.affectedRows.toInt() > 0) {
           return updateJob(id, {"istAbgeschlossen": true, "canceled": false});
         }
       }
@@ -141,7 +146,7 @@ class AppDatabase {
       final command = await _insertCommand('jobs', true, job);
       final result = await _database.execute(command);
 
-      if (result.isNotEmpty) {
+      if (result.affectedRows.toInt() > 0) {
         jobCount = result.lastInsertID.toInt();
         return jobCount;
       }
@@ -159,7 +164,7 @@ class AppDatabase {
         final command = "${_updateCommand('jobs', updateKeys, update)} WHERE id = $id";
         final result = await _database.execute(command);
 
-        if (!result.affectedRows.isNegative) return true;
+        if (result.affectedRows.toInt() > 0) return true;
       }
     } catch (e) {
       print("Error mysql update job: ${e.toString()}");
@@ -174,7 +179,7 @@ class AppDatabase {
         final command = "DELETE FROM active WHERE id = $id";
         final result = await _database.execute(command);
 
-        if (result.affectedRows > BigInt.from(0)) {
+        if (result.affectedRows.toInt() > 0) {
           return await updateJob(id, {"active": false});
         }
       }
@@ -269,9 +274,10 @@ class AppDatabase {
   Future<int?> insertUser(Map user) async {
     try {
       final command = await _insertCommand('users', true, user);
+      print(command);
       final result = await _database.execute(command);
 
-      if (result.isNotEmpty) {
+      if (result.affectedRows.toInt() > 0) {
         userCount = result.lastInsertID.toInt();
         return userCount;
       }
@@ -289,7 +295,7 @@ class AppDatabase {
         final command = "${_updateCommand('users', validKeys, update)} WHERE id = $id";
         final result = await _database.execute(command);
 
-        if (!result.affectedRows.isNegative) return true;
+        if (result.affectedRows.toInt() > 0) return true;
       }
     } catch (e) {
       print("Error mysql update user: ${e.toString()}");
@@ -335,6 +341,33 @@ class AppDatabase {
     return true;
   }
 
+  // Run update command
+  Future<bool?> _update(String command) async {
+    final result = await _database.execute(command);
+    if (result.affectedRows.toInt() <= 0) return false;
+    return true;
+  }
+
+  // Get first value from database result
+  Future<Map?> _getFirstResult(String command) async {
+    final result = await _database.execute(command);
+    if (result.rows.isEmpty) return null;
+    return result.rows.first.assoc();
+  }
+
+  // Get all values from database result
+  Future<List<Map>?> _getResults(String command) async {
+    List<Map>? values;
+    final result = await _database.execute(command);
+    if (result.rows.isNotEmpty) {
+      values = [];
+      for (var row in result.rows) {
+        values.add(row.assoc());
+      }
+    }
+    return values;
+  }
+
   // Generate MySQL Update command
   String _updateCommand(String table, List<String> keys, Map update) {
     var command = "Update $table SET";
@@ -370,7 +403,7 @@ class AppDatabase {
     var insertValues = 'VALUES (';
 
     for (var key in keys) {
-      if (!values.containsKey(key)) {
+      if (key != 'id' && !values.containsKey(key)) {
         throw Exception('Missing table key: $key');
       }
 

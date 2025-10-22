@@ -1,8 +1,10 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../error_handler.dart';
+
 const TABLE_NAME = 'cache';
 
-// App cache with sqlite
+// App cache with sqlite database
 class Cache {
   late Database _database;
   final List<String> _keys = [];
@@ -45,7 +47,7 @@ CREATE TABLE IF NOT EXISTS $TABLE_NAME (
         }
       }
     } catch (e) {
-      print('Error sqlite get $key cache: ${e.toString()}');
+      ErrorHandler.handle(Error(ErrorCode.cacheError, 'GET', e.toString()));
     }
     return null;
   }
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS $TABLE_NAME (
 
       return true;
     } catch (e) {
-      print('Error sqlite update $key cache: ${e.toString()}');
+      ErrorHandler.handle(Error(ErrorCode.cacheError, 'UPDATE', e.toString()));
       return false;
     }
   }
@@ -83,10 +85,10 @@ CREATE TABLE IF NOT EXISTS $TABLE_NAME (
       if (_keys.contains(key)) {
         await _database.execute('DELETE FROM $TABLE_NAME WHERE key="$key"');
       }
-      
+
       return true;
     } catch (e) {
-      print('Error sqlite delete $key cache: ${e.toString()}');
+      ErrorHandler.handle(Error(ErrorCode.cacheError, 'DELETE', e.toString()));
       return false;
     }
   }
@@ -97,7 +99,7 @@ CREATE TABLE IF NOT EXISTS $TABLE_NAME (
       await _database.execute('DELETE FROM $TABLE_NAME WHERE 1=1');
       return true;
     } catch (e) {
-      print('Error sqlite clear cache: ${e.toString()}');
+      ErrorHandler.handle(Error(ErrorCode.cacheError, 'CLEAR', e.toString()));
       return false;
     }
   }

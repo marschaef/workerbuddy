@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'api/api_service.dart';
 import 'main_screen.dart';
-import 'states/user.dart';
+import 'states/auth.dart';
 import 'utils/test_screen.dart';
 
 class AppRouter {
@@ -19,19 +19,19 @@ class AppRouter {
       case "/":
         return MaterialPageRoute(
           builder: (_) => BlocProvider(
-            create: (BuildContext context) => UserCubit(api: api),
+            create: (BuildContext context) => AuthCubit(api: api),
             child: MainScreen(),
         ));
       case "/login":
         return MaterialPageRoute(
           builder: (_) => BlocProvider(
-            create: (BuildContext context) => UserCubit(api: api),
+            create: (BuildContext context) => AuthCubit(api: api),
             child: StyleTestApp(),
           ));
       case "/register":
         return MaterialPageRoute(
           builder: (_) => BlocProvider(
-            create: (BuildContext context) => UserCubit(api: api),
+            create: (BuildContext context) => AuthCubit(api: api),
             child: StyleTestApp(),
           ));
       default:

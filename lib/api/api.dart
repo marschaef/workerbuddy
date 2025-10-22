@@ -94,10 +94,10 @@ class Api {
   Future<Response> _registerUser(Request request) async {
     try {
       final body = json.decode(await request.readAsString());
-      final (userHash, userSalt) = newHash(body["password"]);
-      body["user"]["hash"] = userHash;
-      body["user"]["salt"] = userSalt;
-      final userID = await _database.insertUser(body["user"]);
+      final (userHash, userSalt) = newHash(body["hash"]);
+      body["hash"] = userHash;
+      print(body);
+      final userID = await _database.insertUser(body);
 
       if (userID != null) {
         final accessToken = generateAccessToken(userID);
