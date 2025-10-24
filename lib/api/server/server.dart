@@ -4,9 +4,9 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'api.dart';
-import 'middlewares/auth.dart';
-import 'middlewares/cors.dart';
-import 'middlewares/error.dart';
+import './middlewares/auth.dart';
+import './middlewares/cors.dart';
+import './middlewares/error.dart';
 
 // API server with Shelf (start server: dart run server.dart)
 void main() async {

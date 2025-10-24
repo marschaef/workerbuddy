@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../token_service.dart';
+import '../token_service_test.dart';
 
 /// Authorization interceptor to manage access tokens for api requests
 class AuthInterceptor extends Interceptor {
@@ -18,10 +18,10 @@ class AuthInterceptor extends Interceptor {
     options.headers.addAll({
       'Content-Type': 'application/json',
     });
-
+    
     if (apiMethode != 'login' && apiMethode != 'register') {
       String? accessToken;
-      final isRefresh = apiMethode != 'refresh';
+      final isRefresh = apiMethode == 'refresh';
 
       if (isRefresh) {
         accessToken = await _tokenService.getRefreshToken();
@@ -52,10 +52,8 @@ class AuthInterceptor extends Interceptor {
   /// Save tokens after token refresh, login or register.
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) async {
-    final data = response.data;
-    String methode = data["methode"];
-
-    if ((methode == 'refresh' || methode == 'login' || methode == 'register') &&
+    String method = response.realUri.toString().split('/').last;
+    if ((method == 'refresh' || method == 'login' || method == 'register') &&
         response.statusCode == 200) {
       final data = response.data;
       _tokenService.saveAccessToken(data["tokens"]["access"]);
@@ -74,6 +72,7 @@ class AuthInterceptor extends Interceptor {
       } else if (await _tokenService.getRefreshToken() != null) {
         await _tokenService.deleteRefreshToken();
         super.onError(error, handler);
+        return;
       }
 
       final refreshToken = await _tokenService.getRefreshToken();

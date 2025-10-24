@@ -1,51 +1,49 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 // JWT token service to save, get, and delete auth tokens
 class TokenService {
   // Private constructor to get single instance class
   TokenService._privateConstructor();
   static final TokenService instance = TokenService._privateConstructor();
 
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
+  final Map<String, String?> _storage = {};
 
   // Save access token
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(key: 'access', value: token);
+    _storage['access'] = token;
   }
 
   // Save refresh token
   Future<void> saveRefreshToken(String token) async {
-    await _storage.write(key: 'refresh', value: token);
+    _storage['refresh'] = token;
   }
 
   // Get access token
   Future<String?> getAccessToken() async {
-    return await _storage.read(key: 'access');
+    return _storage['access'];
   }
 
   // Get refresh token
   Future<String?> getRefreshToken() async {
-    return await _storage.read(key: 'refresh');
+    return _storage['refresh'];
   }
 
   // Delete access token
   Future<void> deleteAccessToken() async {
-    await _storage.delete(key: 'access');
+    _storage.remove('access');
   }
 
   // Delete refresh token
   Future<void> deleteRefreshToken() async {
-    await _storage.delete(key: 'refresh');
+    _storage.remove('refresh');
   }
 
   // Check if a access token is stored
   Future<bool> hasAccessToken() async {
-    return await _storage.containsKey(key: 'access');
+    return _storage.containsKey('access');
   }
 
   // Check if a refresh token is stored
   Future<bool> hasRefreshToken() async {
-    return await _storage.containsKey(key: 'refresh');
+    return _storage.containsKey('refresh');
   }
 
   // Check if a access or refresh token is stored

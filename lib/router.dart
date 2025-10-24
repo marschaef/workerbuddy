@@ -7,35 +7,31 @@ import 'states/auth.dart';
 import 'utils/test_screen.dart';
 
 class AppRouter {
-
   late ApiService api;
 
   AppRouter() {
     api = ApiService();
   }
 
+  MaterialPageRoute _generateBlocPage(Widget page, Cubit cubit) {
+    return MaterialPageRoute(
+      builder: (_) => BlocProvider(create: (BuildContext context) => cubit, child: page),
+    );
+  }
+
   Route generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case "/":
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (BuildContext context) => AuthCubit(api: api),
-            child: MainScreen(),
-        ));
-      case "/login":
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (BuildContext context) => AuthCubit(api: api),
-            child: StyleTestApp(),
-          ));
-      case "/register":
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (BuildContext context) => AuthCubit(api: api),
-            child: StyleTestApp(),
-          ));
-      default:
-        return MaterialPageRoute(builder: (context) => MainScreen());
+    if (api.loggedIn) {
+      switch (settings.name) {
+        case "/":
+          return _generateBlocPage(MainScreen(), AuthCubit(api: api));
+        case "/login":
+          return _generateBlocPage(StyleTestApp(), AuthCubit(api: api));
+        case "/register":
+          return _generateBlocPage(StyleTestApp(), AuthCubit(api: api));
+        default:
+          return MaterialPageRoute(builder: (context) => MainScreen());
+      }
     }
+    return _generateBlocPage(StyleTestApp(), AuthCubit(api: api));
   }
 }

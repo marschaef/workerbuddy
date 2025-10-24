@@ -35,7 +35,7 @@ class Error implements Exception {
   Error(this.code, this.method, this.message);
 
   @override
-  String toString() => 'ERROR $code $method: $message';
+  String toString() => 'ERROR $code ${method ?? ""} $message';
 }
 
 // App error handler
@@ -75,20 +75,16 @@ class ErrorHandler {
 
   // Dio client bad responses
   Error _handleBadResponse(DioException error) {
-    try {
-      final code = error.response?.statusCode ?? ErrorCode.defaultError;
-      switch (code) {
-        case ResponseCode.unauthorised:
-          return Error(code, null, "Unauthorized api call");
-        case ResponseCode.forbidden:
-          return Error(code, null, "Forbidden api call");
-        case ResponseCode.notFound:
-          return Error(code, null, "Url not found");
-        default:
-          return Error(code, null, error.response?.data);
-      }
-    } catch (e) {
-      return Error(ErrorCode.defaultError, null, "Something went wrong");
+    final code = error.response?.statusCode ?? ResponseCode.badRequest;
+    switch (code) {
+      case ResponseCode.unauthorised:
+        return Error(code, null, "Unauthorized api call");
+      case ResponseCode.forbidden:
+        return Error(code, null, "Forbidden api call");
+      case ResponseCode.notFound:
+        return Error(code, null, "Url not found");
+      default:
+        return Error(code, null, error.response?.data?['error'] ?? "Bad request");
     }
   }
 

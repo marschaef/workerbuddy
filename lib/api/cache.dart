@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/widgets.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../error_handler.dart';
@@ -10,9 +13,10 @@ class Cache {
   final List<String> _keys = [];
 
   Cache() {
+    WidgetsFlutterBinding.ensureInitialized();
     // Connect to database an create cache table
     Future<void> connectDB() async {
-      _database = await openDatabase('.$TABLE_NAME.db');
+      _database = await openDatabase('${await getDatabasesPath()}.$TABLE_NAME.db');
 
       await _database.execute('''
 CREATE TABLE IF NOT EXISTS $TABLE_NAME ( 
@@ -21,8 +25,8 @@ CREATE TABLE IF NOT EXISTS $TABLE_NAME (
   key TEXT NOT NULL,
   value TEXT)
 ''');
-      final results = await _database.query('SELECT key FROM cache');
-
+      final results = await _database.rawQuery('SELECT key FROM $TABLE_NAME;');
+      
       if (results.isNotEmpty) {
         for (var result in results) {
           if (result['key'] != null) {
@@ -36,14 +40,14 @@ CREATE TABLE IF NOT EXISTS $TABLE_NAME (
   }
 
   // Get cache value from database
-  Future<String?> get(String key) async {
+  Future<Map<String, dynamic>?> get(String key) async {
     try {
       if (_keys.contains(key)) {
         final command = 'SELECT value FROM $TABLE_NAME WHERE key = "$key"';
         final result = await _database.query(command);
 
         if (result.isNotEmpty) {
-          return result.first.toString();
+          return json.decode(result.first.toString());
         }
       }
     } catch (e) {
@@ -53,20 +57,19 @@ CREATE TABLE IF NOT EXISTS $TABLE_NAME (
   }
 
   // Update or insert cache vaule in database
-  Future<bool> update(String key, String? value) async {
+  Future<bool> update(String key, dynamic value) async {
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       if (_keys.contains(key)) {
-        value = value == null ? 'NULL' : '"value"';
         final command =
-            'UPDATE $TABLE_NAME SET timestamp = $timestamp, value = $value WHERE key = "$key"';
+            'UPDATE $TABLE_NAME SET timestamp = $timestamp, value = "$value" WHERE key = "$key"';
 
         await _database.execute(command);
       } else {
         await _database.insert(TABLE_NAME, {
           'timestamp': timestamp,
           'key': key,
-          'value': value,
+          'value': "$value",
         });
 
         _keys.add(key);

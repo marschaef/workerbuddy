@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'classes/user.dart';
@@ -20,7 +18,7 @@ class AuthCubit extends Cubit<StateInfo> {
       if (cache == null) {
         emit(StateInitial());
       }else {
-        emit(AuthStateSuccessful(user: User.fromJson(json.decode(cache))));
+        emit(AuthStateSuccessful(user: User.fromJson(cache)));
       }
     }
     
@@ -42,7 +40,7 @@ class AuthCubit extends Cubit<StateInfo> {
       } else {
         final response = await api.login(email, password);
         if (response != null) {
-          emit(AuthStateSuccessful(user: User.fromJson(json.decode(response))));
+          emit(AuthStateSuccessful(user: User.fromJson(response)));
         }
       }
     } catch (e) {
@@ -69,7 +67,7 @@ class AuthCubit extends Cubit<StateInfo> {
       }else {
         final response = await api.register(username, email, password);
         if (response != null) {
-          emit(AuthStateSuccessful(user: User.fromJson(json.decode(response))));
+          emit(AuthStateSuccessful(user: User.fromJson(response)));
         }
       }
     } catch (e) {
@@ -83,7 +81,7 @@ class AuthCubit extends Cubit<StateInfo> {
       emit(StateLoading());
       final response = await api.logout();
 
-      if (response != null && response) {
+      if (response) {
         emit(StateInitial());
       }
     } catch (e) {

@@ -1,6 +1,6 @@
-import 'dart:convert';
-
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+
+// JWT token utils to generate and verify tokens
 
 const TEST_RSA_PUBLIC = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArHgWkfjycp41WHDF/EELpyCzVSOIsmTTtdNtkvx1nsmRKzJc2h+NICN5pEu095ql34Z3Zgb4teMJULBMrSxwJW0xWbvaw6jy8GYNldQ0djSrxCwtZuUYWrQ5sz5yfDy5NjuJnaQmn3ng+ZUP+7Y+/kr8Kfb7Wwb6MGQPjFZKkMQIQppgqX/OOrxofqJ+QPIC2e1tEZnXQyPEKtcec7yXyx5TroPMrkKTnCKwfJ6VupZ/GEEOOzBQ46gNdO6avMihreMJrvr63DBkzfgxyhL5wMT2CZuJ+H7zvnHBTbnb+9mdwI2l1lGdj8T/AoTH7xPedJMDezibW40yGvd86OJlkQIDAQAB
@@ -11,15 +11,43 @@ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCseBaR+PJynjVYcMX8QQunILNVI4iy
 -----END RSA PRIVATE KEY-----''';
 
 
-// JWT token service to generate and verify tokens
+// JWT token types
+class TokenType {
+  static const String access = 'access';
+  static const String refresh = 'refresh';
+}
+
+// Get user id from token payload
+int? getUserFromToken(String token) {
+  try {
+    final jwt = JWT.decode(token);
+    return jwt.payload["sub"];
+  } on JWTExpiredException {
+    print('Expired authentication token');
+  } on JWTException catch (e) {
+    print('Failed JWT authentication: ${e.toString()}');
+  } catch (e) {
+    print('Error get user from token: ${e.toString()}');
+  }
+  return null;
+}
 
 // Verify token
-String? verifyToken(String token) {
+String? verifyToken(String token, String type) {
   try {
-    JWT.verify(
+    final jwt = JWT.verify(
       token,
-      RSAPrivateKey(String.fromEnvironment('RSA_PUBLIC', defaultValue: TEST_RSA_PUBLIC))
+      RSAPublicKey(String.fromEnvironment('RSA_PUBLIC', defaultValue: TEST_RSA_PUBLIC)),
     );
+
+    if (jwt.issuer != 'workerbuddy') {
+      return 'Invalid token issuer ${jwt.issuer}';
+    }
+    
+    if (jwt.payload['type'] != type) {
+      return 'Invalid token type ${jwt.payload['type']}';
+    }
+    
     return null;
   } on JWTExpiredException {
     return 'Expired authentication token';
@@ -29,24 +57,12 @@ String? verifyToken(String token) {
   }
 }
 
-// Verify token
-int? getUserFromToken(String token) {
-  try {
-    final jwt = JWT.decode(token);
-    return json.decode(jwt.payload.toString())["userId"];
-  } on JWTExpiredException {
-    print('Expired authentication token');
-  } on JWTException catch (e) {
-    print('Failed JWT authentication: ${e.toString()}');
-  }
-  return null;
-}
-
 // Generate access token
 String generateAccessToken(int userId) {
   final jwt = JWT(
     {
-      'userID': userId,
+      'sub': userId,
+      'type': TokenType.access,
       'server': {
         'id': 'workerbuddy',
         'loc': 'euw-2',
@@ -66,7 +82,8 @@ String generateAccessToken(int userId) {
 String generateRefreshToken(int userId) {
   final jwt = JWT(
     {
-      'userID': userId,
+      'sub': userId,
+      'type': TokenType.refresh,
       'server': {
         'id': 'workerbuddy',
         'loc': 'euw-2',

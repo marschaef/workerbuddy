@@ -7,23 +7,6 @@ import 'database.dart';
 import 'password_utils.dart';
 import 'jwt_utils.dart';
 
-class ApiMethod {
-  static const String login = 'login';
-  static const String logout = 'logout';
-  static const String register = 'register';
-  static const String refresh = 'refresh';
-  
-  static const String jobs = 'jobs';
-  static const String acceptJob = 'acceptJob';
-  static const String cancelJob = 'cancelJob';
-  static const String newJob = 'newJob';
-  static const String removeJob = 'removeJob';
-  static const String updateJob = 'updateJob';
-
-  static const String users = 'users';
-  static const String updateUser = 'updateUser';
-}
-
 class Api {
   final AppDatabase _database = AppDatabase();
   //final PasswordManager _passwordManager = PasswordManager.instance;
@@ -57,18 +40,15 @@ class Api {
       final body = json.decode(await request.readAsString());
       final user = await _database.getUserWithMail(body["email"]);
       if (user != null) {
-        final userID = user["id"];
-        final userHash = await _database.getUserHash(userID);
+        if (verifyHash(user["hash"], body["hash"])) {
+          final userId = int.parse(user["id"]);
+          final accessToken = generateAccessToken(userId);
+          final refreshToken = generateRefreshToken(userId);
 
-        if (userHash != null) {
-          if (await verifyPassword(userHash, body["password"])) {
-            final accessToken = generateAccessToken(userID);
-            final refreshToken = generateRefreshToken(userID);
-            return _successResponse({
-              'tokens': {'access': accessToken, 'refresh': refreshToken},
-              'user': {},
-            });
-          }
+          return _loginResponse(
+            {'id': userId, 'email': body["email"]},
+            {'access': accessToken, 'refresh': refreshToken},
+          );
         }
       }
     } catch (e) {
@@ -80,10 +60,9 @@ class Api {
   // Returns access and refresh jwt token to user
   Future<Response> _logout(Request request) async {
     try {
-      final body = json.decode(await request.readAsString());
-      final success = await _database.updateUser(body["userId"], {"logged": false});
-
-      return _successResponse(success);
+      //final userId = _getUserFromContext(request.context);
+      //final success = await _database.updateUser(body["userId"], {"logged": false});
+      return _successResponse(true);
     } catch (e) {
       print("Error api logout user: ${e.toString()}");
     }
@@ -92,40 +71,42 @@ class Api {
 
   // Register new user api function
   Future<Response> _registerUser(Request request) async {
+    String? error;
     try {
       final body = json.decode(await request.readAsString());
-      final (userHash, userSalt) = newHash(body["hash"]);
-      body["hash"] = userHash;
-      print(body);
-      final userID = await _database.insertUser(body);
+      if (await _database.getUserWithMail(body["email"]) == null) {
+        body["hash"] = generateHash(body["hash"]);
+        final userId = await _database.insertUser(body);
 
-      if (userID != null) {
-        final accessToken = generateAccessToken(userID);
-        final refreshToken = generateRefreshToken(userID);
-        return _successResponse({
-          'tokens': {'access': accessToken, 'refresh': refreshToken},
-          'user': {},
-        });
+        if (userId != null) {
+          final accessToken = generateAccessToken(userId);
+          final refreshToken = generateRefreshToken(userId);
+
+          return _loginResponse(
+            {'id': userId, 'email': body["email"]},
+            {'access': accessToken, 'refresh': refreshToken},
+          );
+        }
+      } else {
+        error = 'Email already in use';
       }
     } catch (e) {
       print("Error api new user: ${e.toString()}");
     }
-    return _badResponse(null);
+    return _badResponse(error);
   }
 
   // Returns refreshed access and refresh jwt token to user
   Future<Response> _refreshToken(Request request) async {
     try {
-      final body = json.decode(await request.readAsString());
-      final userID = body["user"];
+      final userId = _getUserFromContext(request.context);
+      final accessToken = generateAccessToken(userId);
+      final refreshToken = generateRefreshToken(userId);
 
-      if (userID != null) {
-        final accessToken = generateAccessToken(userID);
-        final refreshToken = generateRefreshToken(userID);
-        return _successResponse({
-          'tokens': {'access': accessToken, 'refresh': refreshToken},
-        });
-      }
+      return _loginResponse(true, {
+        'access': accessToken,
+        'refresh': refreshToken,
+      });
     } catch (e) {
       print("Error api refresh token: ${e.toString()}");
     }
@@ -136,10 +117,12 @@ class Api {
   Future<Response> _acceptJob(Request request) async {
     try {
       final body = json.decode(await request.readAsString());
-      //if (!_verifyToken(body["token"])) return _forbiddenResponse();
-      final success = await _database.acceptJob(body["id"], body["user"]);
+      final userId = _getUserFromContext(request.context);
 
-      return _successResponse(success);
+      if (await _database.isWorker(userId)) {
+        final success = await _database.acceptJob(userId, body["user"]);
+        return _successResponse(success);
+      }
     } catch (e) {
       print("Error api accept job: ${e.toString()}");
     }
@@ -150,9 +133,13 @@ class Api {
   Future<Response> _cancelJob(Request request) async {
     try {
       final body = json.decode(await request.readAsString());
+      final userId = _getUserFromContext(request.context);
+      final jobId = body["id"];
 
-      final success = await _database.cancelJob(body["id"]);
-      return _successResponse(success);
+      if (await _database.isUsersJob(jobId, userId)) {
+        final success = await _database.cancelJob(jobId);
+        return _successResponse(success);
+      }
     } catch (e) {
       print("Error api remove job: ${e.toString()}");
     }
@@ -192,9 +179,13 @@ class Api {
   Future<Response> _updateJob(Request request) async {
     try {
       final body = json.decode(await request.readAsString());
-      final success = await _database.updateJob(body["id"], body["update"]);
+      final userId = _getUserFromContext(request.context);
+      final jobId = body["id"];
 
-      return _successResponse(success);
+      if (await _database.isUsersJob(jobId, userId)) {
+        final success = await _database.updateJob(jobId, body["update"]);
+        return _successResponse(success);
+      }
     } catch (e) {
       print("Error api update job: ${e.toString()}");
     }
@@ -205,9 +196,13 @@ class Api {
   Future<Response> _removeJob(Request request) async {
     try {
       final body = json.decode(await request.readAsString());
-      final success = await _database.removeJob(body["id"]);
+      final userId = _getUserFromContext(request.context);
+      final jobId = body["id"];
 
-      return _successResponse(success);
+      if (await _database.isUsersJob(jobId, userId)) {
+        final success = await _database.removeJob(body["id"]);
+        return _successResponse(success);
+      }
     } catch (e) {
       print("Error api remove job: ${e.toString()}");
     }
@@ -233,7 +228,8 @@ class Api {
   Future<Response> _updateUser(Request request) async {
     try {
       final body = json.decode(await request.readAsString());
-      final success = await _database.updateUser(body["id"], body["update"]);
+      final userId = _getUserFromContext(request.context);
+      final success = await _database.updateUser(userId, body["update"]);
 
       return _successResponse(success);
     } catch (e) {
@@ -242,10 +238,22 @@ class Api {
     return _badResponse(null);
   }
 
+  int _getUserFromContext(Map<String, Object?> context) {
+    return int.parse(context["userId"].toString());
+  }
+
   // Returns success 200 response
   Response _successResponse(dynamic value) {
     return Response.ok(
-      '{"value": $value, "timestamp": "${DateTime.now().toIso8601String()}"}',
+      '{"value": ${json.encode(value)}, "timestamp": "${DateTime.now().toIso8601String()}"}',
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
+  // Returns success 200 response with user data and auth tokens
+  Response _loginResponse(dynamic value, Map tokens) {
+    return Response.ok(
+      '{"value": ${json.encode(value)}, "tokens": ${json.encode(tokens)}, "timestamp": "${DateTime.now().toIso8601String()}"}',
       headers: {'content-type': 'application/json'},
     );
   }
@@ -254,7 +262,7 @@ class Api {
   Response _badResponse(String? error) {
     final message = error ?? "Bad Request";
     return Response.badRequest(
-      body: '{"error": $message, "timestamp": "${DateTime.now().toIso8601String()}"}',
+      body: '{"error": "$message", "timestamp": "${DateTime.now().toIso8601String()}"}',
       headers: {'content-type': 'application/json'},
     );
   }

@@ -1,9 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'user.g.dart';
-
-
 // Create user.g.dart with command: dart run build_runner build
+part 'user.g.dart';
 
 // Json serializable user class
 @JsonSerializable()

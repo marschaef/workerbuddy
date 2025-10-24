@@ -1,42 +1,41 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:encrypt/encrypt.dart';
 
+import 'package:pointycastle/asymmetric/api.dart';
 
+// Password utils functions to generate salted hashes
 
-// Password utils functions to generate salts and hashes
+const TEST_RSA_PUBLIC = '''-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArHgWkfjycp41WHDF/EELpyCzVSOIsmTTtdNtkvx1nsmRKzJc2h+NICN5pEu095ql34Z3Zgb4teMJULBMrSxwJW0xWbvaw6jy8GYNldQ0djSrxCwtZuUYWrQ5sz5yfDy5NjuJnaQmn3ng+ZUP+7Y+/kr8Kfb7Wwb6MGQPjFZKkMQIQppgqX/OOrxofqJ+QPIC2e1tEZnXQyPEKtcec7yXyx5TroPMrkKTnCKwfJ6VupZ/GEEOOzBQ46gNdO6avMihreMJrvr63DBkzfgxyhL5wMT2CZuJ+H7zvnHBTbnb+9mdwI2l1lGdj8T/AoTH7xPedJMDezibW40yGvd86OJlkQIDAQAB
+-----END PUBLIC KEY-----''';
 
-// Generate hash from user password, unique user salt and static server salt
-String generateHash(String password, String userSalt) {
-  const String serverSalt = String.fromEnvironment(
+// Generate RSA256 encrypted salted password
+String encryptedHash(String password) {
+  return _encryptRSA(_generateHash(password));
+}
+
+// Generate sha256 from user password + static salt
+String _generateHash(String password) {
+  const String salt = String.fromEnvironment(
     'SERVER_SALT',
-    defaultValue: "0123456789abcdef0123456789abcdef",
+    defaultValue: "0123456789abcdef",
   );
-  return sha256.convert(utf8.encode(password + userSalt + serverSalt)).toString();
+  return sha256.convert(utf8.encode(password + salt)).toString();
 }
 
-// Generate new hash from user password
-(String, String) newHash(String password) {
-  final userSalt = generateSalt();
-  return (generateHash(password, userSalt), userSalt);
-}
 
-// Generate random 16 byte hex string
-String generateSalt() {
-  var random = Random.secure();
-  final saltBytes = List<int>.generate(16, (i) => random.nextInt(256));
-  return saltBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
-}
-
-// Verify user passwort
-Future<bool> verifyPassword(String userHash, String password) async {
-  try {
-    final userSalt = userHash.substring(0, 32);
-    final hash = generateHash(password, userSalt);
-    return hash == userHash.substring(32);
-  } catch (e) {
-    print("Error verify password: ${e.toString()}");
-  }
-  return false;
+// RSA data encryption
+String _encryptRSA(String data) {
+  //if(data.length > 180) return null;
+  final parser = RSAKeyParser();
+  final encrypter = Encrypter(RSA(
+    publicKey: parser.parse(
+      String.fromEnvironment('RSA_PUBLIC', defaultValue: TEST_RSA_PUBLIC)
+    ) as RSAPublicKey,
+    encoding: RSAEncoding.OAEP,
+    digest: RSADigest.SHA256
+  ));
+  return encrypter.encrypt(data).base64;
 }

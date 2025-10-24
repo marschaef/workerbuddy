@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:mysql_client/mysql_client.dart';
 
 // Workerbuddy MySQL database interface
@@ -12,10 +13,19 @@ class AppDatabase {
     Future<void> connectDB() async {
       try {
         _database = await MySQLConnection.createConnection(
-          host: String.fromEnvironment('MYSQL_HOST', defaultValue: '10.42.0.140'),
+          host: String.fromEnvironment(
+            'MYSQL_HOST',
+            defaultValue: '10.42.0.140',
+          ),
           port: int.fromEnvironment('MYSQL_PORT', defaultValue: 3306),
-          userName: String.fromEnvironment('MYSQL_USERNAME', defaultValue: 'user'),
-          password: String.fromEnvironment('MYSQL_PASSWORD', defaultValue: 'password'),
+          userName: String.fromEnvironment(
+            'MYSQL_USERNAME',
+            defaultValue: 'user',
+          ),
+          password: String.fromEnvironment(
+            'MYSQL_PASSWORD',
+            defaultValue: 'password',
+          ),
           databaseName: String.fromEnvironment(
             'MYSQL_APP_DATABASE',
             defaultValue: 'workerbuddy',
@@ -25,8 +35,10 @@ class AppDatabase {
         await _database.connect();
         jobCount = (await getTableLength('jobs'))?.toInt() ?? jobCount;
         userCount = (await getTableLength('users'))?.toInt() ?? userCount;
+
+        print('DB connected successfully');
       } catch (e) {
-        print("Error mysql connect: ${e.toString()}");
+        print('Error mysql connect: ${e.toString()}');
         exit(0);
       }
     }
@@ -38,10 +50,10 @@ class AppDatabase {
   Future<BigInt?> getTableLength(String table) async {
     try {
       final command = "SELECT COUNT(id) FROM $table";
-      final result = await _database.execute(command);
-      if (result.affectedRows.toInt() > 0) {
-        final data = result.rows.first.assoc()["COUNT(id)"];
-        if (data != null) return BigInt.parse(data);
+      final result = await _getFirstResult(command);
+      if (result != null) {
+        final length = result["COUNT(id)"];
+        if (length != null) return BigInt.parse(length);
       }
     } catch (e) {
       print("Error mysql get table length of $table: ${e.toString()}");
@@ -69,10 +81,10 @@ class AppDatabase {
     try {
       if (_validJobId(id)) {
         final command = "DELETE FROM active WHERE id = $id";
-        final result = await _database.execute(command);
+        final success = await _delete(command);
 
-        if (result.affectedRows.toInt() > 0) {
-          return updateJob(id, {"active": false, "canceled": true});
+        if (success) {
+          return await updateJob(id, {"active": false, "canceled": true});
         }
       }
     } catch (e) {
@@ -86,10 +98,13 @@ class AppDatabase {
     try {
       if (_validJobId(id)) {
         final command = "DELETE FROM active WHERE id = $id";
-        final result = await _database.execute(command);
+        final success = await _delete(command);
 
-        if (result.affectedRows.toInt() > 0) {
-          return updateJob(id, {"istAbgeschlossen": true, "canceled": false});
+        if (success) {
+          return await updateJob(id, {
+            "istAbgeschlossen": true,
+            "canceled": false,
+          });
         }
       }
     } catch (e) {
@@ -103,9 +118,7 @@ class AppDatabase {
     try {
       if (_validJobId(id)) {
         final command = "SELECT * FROM jobs WHERE id = $id";
-        final result = await _database.execute(command);
-
-        if (result.rows.isNotEmpty) return result.rows.first.assoc();
+        return await _getFirstResult(command);
       }
     } catch (e) {
       print("Error mysql get job: ${e.toString()}");
@@ -123,17 +136,8 @@ class AppDatabase {
         command += _generateConditions(filterKeys, filter);
       }
 
-      List<Map>? values;
-      final result = await _database.execute(command);
-
-      if (result.rows.isNotEmpty) {
-        values = [];
-        for (var row in result.rows) {
-          values.add(row.assoc());
-        }
-      }
-
-      return values;
+      //List<Map>? values;
+      return await _getResults(command);
     } catch (e) {
       print("Error mysql get jobs: ${e.toString()}");
       return null;
@@ -161,10 +165,9 @@ class AppDatabase {
     try {
       if (_validJobId(id)) {
         const updateKeys = ["time", "active"];
-        final command = "${_updateCommand('jobs', updateKeys, update)} WHERE id = $id";
-        final result = await _database.execute(command);
-
-        if (result.affectedRows.toInt() > 0) return true;
+        final command =
+            "${_updateCommand('jobs', updateKeys, update)} WHERE id = $id";
+        return _update(command);
       }
     } catch (e) {
       print("Error mysql update job: ${e.toString()}");
@@ -177,9 +180,9 @@ class AppDatabase {
     try {
       if (_validJobId(id)) {
         final command = "DELETE FROM active WHERE id = $id";
-        final result = await _database.execute(command);
+        final success = await _delete(command);
 
-        if (result.affectedRows.toInt() > 0) {
+        if (success) {
           return await updateJob(id, {"active": false});
         }
       }
@@ -189,7 +192,7 @@ class AppDatabase {
     return false;
   }
 
-  // Get user from mysql database
+  // Get user id from mysql database
   Future<int?> getUserID(String email) async {
     try {
       final results = await getUsers({'email': email});
@@ -202,14 +205,18 @@ class AppDatabase {
     return null;
   }
 
-  // Get user from mysql database
+  // Get user from mysql database without hash, phone number
   Future<Map?> getUser(int id) async {
     try {
       if (_validUserId(id)) {
         final command = "SELECT * FROM users WHERE id = $id";
-        final result = await _database.execute(command);
+        final user = await _getFirstResult(command);
 
-        if (result.rows.isNotEmpty) return result.rows.first.assoc();
+        if (user != null) {
+          user.remove('hash');
+          user.remove('phone');
+          return user;
+        }
       }
     } catch (e) {
       print("Error mysql get user: ${e.toString()}");
@@ -217,49 +224,36 @@ class AppDatabase {
     return null;
   }
 
-  // Get user from mysql database
-  Future<String?> getUserHash(int id) async {
-    try {
-      final command = "SELECT hash FROM users WHERE id = $id";
-      final result = await _database.execute(command);
-
-      if (result.rows.isNotEmpty) return result.rows.first.assoc()["hash"];
-    } catch (e) {
-      print("Error mysql get user with mail: ${e.toString()}");
-    }
-    return null;
-  }
-
-  // Get user from mysql database
+  // Get user with email from mysql database with all data
   Future<Map?> getUserWithMail(String email) async {
     try {
-      final command = "SELECT * FROM users WHERE email = $email";
-      final result = await _database.execute(command);
-
-      if (result.rows.isNotEmpty) return result.rows.first.assoc();
+      final command = 'SELECT * FROM users WHERE email = "$email"';
+      return await _getFirstResult(command);
     } catch (e) {
       print("Error mysql get user with mail: ${e.toString()}");
     }
     return null;
   }
 
-  // Get users from mysql database
+  // Get users from mysql database without hash, phone number
   Future<List<Map>?> getUsers(Map? filter) async {
     try {
       var command = "SELECT * FROM users";
 
       if (filter != null) {
-        const filterKeys = ["id", "name"];
+        const filterKeys = ["id", "username"];
         command += _generateConditions(filterKeys, filter);
       }
 
+      final results = await _getResults(command);
       List<Map>? values;
-      final result = await _database.execute(command);
 
-      if (result.rows.isNotEmpty) {
+      if (results != null) {
         values = [];
-        for (var row in result.rows) {
-          values.add(row.assoc());
+        for (var user in results) {
+          user.remove('hash');
+          user.remove('phone');
+          values.add(user);
         }
       }
 
@@ -292,10 +286,9 @@ class AppDatabase {
     try {
       if (_validUserId(id)) {
         const validKeys = ["mail", "phone", "address", "city"];
-        final command = "${_updateCommand('users', validKeys, update)} WHERE id = $id";
-        final result = await _database.execute(command);
-
-        if (result.affectedRows.toInt() > 0) return true;
+        final command =
+            "${_updateCommand('users', validKeys, update)} WHERE id = $id";
+        return _update(command);
       }
     } catch (e) {
       print("Error mysql update user: ${e.toString()}");
@@ -325,7 +318,9 @@ class AppDatabase {
         throw Exception("No column names found in table $table");
       }
     } catch (e) {
-      throw Exception("Error get column names of table $table: ${e.toString()}");
+      throw Exception(
+        "Error get column names of table $table: ${e.toString()}",
+      );
     }
   }
 
@@ -341,17 +336,40 @@ class AppDatabase {
     return true;
   }
 
+  // Check if user is worker
+  Future<bool> isWorker(int id) async {
+    if (_validUserId(id)) {
+      final user = await getUser(id);
+      if (user != null) return user['isWorker'];
+    }
+    return false;
+  }
+
+  // Check if job is users job
+  Future<bool> isUsersJob(int jobId, int userId) async {
+    if (_validJobId(jobId) && _validUserId(userId)) {
+      final job = await getJob(jobId);
+      if (job != null) return job['userId'] == userId;
+    }
+    return false;
+  }
+
   // Run update command
-  Future<bool?> _update(String command) async {
+  Future<bool> _update(String command) async {
     final result = await _database.execute(command);
     if (result.affectedRows.toInt() <= 0) return false;
     return true;
   }
 
+  // Run delete command
+  Future<bool> _delete(String command) async {
+    return _update(command);
+  }
+
   // Get first value from database result
   Future<Map?> _getFirstResult(String command) async {
     final result = await _database.execute(command);
-    if (result.rows.isEmpty) return null;
+    if (result.affectedRows.toInt() > 0) return null;
     return result.rows.first.assoc();
   }
 
@@ -359,7 +377,7 @@ class AppDatabase {
   Future<List<Map>?> _getResults(String command) async {
     List<Map>? values;
     final result = await _database.execute(command);
-    if (result.rows.isNotEmpty) {
+    if (result.affectedRows.toInt() > 0) {
       values = [];
       for (var row in result.rows) {
         values.add(row.assoc());
@@ -397,7 +415,11 @@ class AppDatabase {
   }
 
   // Generate MySQL insert command (map keys and table keys have to be equal)
-  Future<String> _insertCommand(String table, bool noPrimaryKey, Map values) async {
+  Future<String> _insertCommand(
+    String table,
+    bool noPrimaryKey,
+    Map values,
+  ) async {
     final keys = await _getColumnNames(table, noPrimaryKey);
     var insertKeys = 'INSERT INTO $table (';
     var insertValues = 'VALUES (';
